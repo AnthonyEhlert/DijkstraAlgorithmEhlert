@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.Stack;
 
 /*****************************************************************
  * Name				: DijkstraAlgorithmEhlert
@@ -146,7 +147,7 @@ public class Graph {
 
 	// START OF DIJKSTRA"S ALGORITM NEEDED METHODS
 
-	public void dijkstraSPT(char srcNode) {
+	public void dijkstraSPT(char srcNode, char dstNode) {
 
 		// create array to hold node data values that have been visited/calculated
 		LinkedList<Character> sptSet = new LinkedList<Character>();
@@ -159,21 +160,31 @@ public class Graph {
 			nodeDistArray[i] = nodeLists.get(i).get(0);
 		}
 
-		// set dist value for starting node/srcNode to 0
+		// variable for starting node set to null
+		Node startNode = null;
+
+		// set dist value for starting node/srcNode to 0, and previous to itself
 		for (int i = 0; i < nodeDistArray.length; i++) {
 			if (Character.toLowerCase(srcNode) == Character.toLowerCase(nodeDistArray[i].data)) {
 				nodeDistArray[i].setDist(0);
-			} else {
-				System.out.println();
-				System.out.println("\"" + Character.toUpperCase(srcNode) + "\" is not a node in this graph!!!");
-				return;
+				nodeDistArray[i].setPrevious(nodeDistArray[i]);
+				startNode = nodeDistArray[i];
+				break;
 			}
+		}
+
+		// check if startNode not found in graph and return from method if null
+		if (startNode == null) {
+			System.out.println();
+			System.out.println("\"" + Character.toUpperCase(srcNode) + "\" is not a node in this graph!!!");
+			return;
 		}
 
 		while (sptSet.size() < nodeLists.size()) {
 
 			// pick node with smallest dist
-			Node minDistNode = nodeDistArray[minDistIndex(nodeDistArray)];
+			int minDistNodeIndex = minDistIndex(nodeDistArray);
+			Node minDistNode = nodeDistArray[minDistNodeIndex];
 
 			// add node to sptSet and set visited to true
 			sptSet.add(minDistNode.data);
@@ -196,6 +207,7 @@ public class Graph {
 						int calcDist = minDistNode.dist + adjNodeList.get(i).weight;
 						if (calcDist < nodeDistArray[j].dist) {
 							nodeDistArray[j].setDist(calcDist);
+							nodeDistArray[j].setPrevious(nodeDistArray[minDistNodeIndex]);
 						}
 					}
 				}
@@ -203,11 +215,57 @@ public class Graph {
 
 		}
 
-		System.out.println("\nShortest Distances from Node \"" + Character.toUpperCase(srcNode) + "\": ");
+		// create endNode variable and set to null
+		Node endNode = null;
+
+		// find ending node is nodeDistArray
 		for (int i = 0; i < nodeDistArray.length; i++) {
-			System.out.println(
-					Character.toUpperCase(srcNode) + "-->" + nodeDistArray[i].data + " = " + nodeDistArray[i].dist);
+			if (Character.toLowerCase(dstNode) == Character.toLowerCase(nodeDistArray[i].data)) {
+				endNode = nodeDistArray[i];
+				break;
+			}
 		}
+
+		// check if endNode not found in graph and return from method if null
+		if (endNode == null) {
+			System.out.println();
+			System.out.println("\"" + Character.toUpperCase(dstNode) + "\" is not a node in this graph!!!");
+			return;
+		}
+
+		// start of logic to print results
+		System.out.println();
+		System.out.println("The shortest path from Node " + startNode.data + " to Node " + endNode.data + " is:");
+
+		// create stack to store nodes in path
+		Stack<Node> pathStack = new Stack<Node>();
+
+		// variable to hold endNode distance
+		int endNodeDist = endNode.dist;
+
+		while (endNode.previous != endNode) {
+			pathStack.add(endNode);
+			endNode = endNode.previous;
+		}
+
+		System.out.print(startNode.data + "->");
+		while (!pathStack.isEmpty()) {
+			Node currentNode = pathStack.pop();
+			if (!pathStack.isEmpty()) {
+				System.out.print(currentNode.data + "->");
+			} else {
+				System.out.print(currentNode.data + "  ");
+			}
+		}
+
+		System.out.println(" Distance = " + endNodeDist);
+
+		// TEST PRINT CODE BELOW FOR SHORTEST PATH FOR ALL NODES
+//		System.out.println("\nShortest Distances from Node \"" + Character.toUpperCase(srcNode) + "\": ");
+//		for (int i = 0; i < nodeDistArray.length; i++) {
+//			System.out.println(
+//					Character.toUpperCase(srcNode) + "-->" + nodeDistArray[i].data + " = " + nodeDistArray[i].dist + "(prev: " + nodeDistArray[i].previous.data);
+//		}
 
 	}
 
@@ -240,10 +298,11 @@ public class Graph {
 		int weight;
 		int dist;
 		boolean visited;
+		Node previous;
 
 		/**
-		 * Creates a Node with a default weight of 0,a max value dist, and visited=
-		 * false. Only called when adding vertices to graph
+		 * Creates a Node with a default weight of 0,a max value dist,visited= false,
+		 * and previous to null. Only called when adding vertices to graph
 		 * 
 		 * @param data - Node data letter/name
 		 */
@@ -252,11 +311,13 @@ public class Graph {
 			this.weight = 0;
 			this.dist = Integer.MAX_VALUE;
 			this.visited = false;
+			this.previous = null;
 		}
 
 		/**
-		 * Creates an adjacency node with the weight of the edge a max value dist, and
-		 * visited= false. that gets added to a LinkedList via the addEdge method
+		 * Creates an adjacency node with the weight of the edge a max value
+		 * dist,visited= false, and previous to null. that gets added to a LinkedList
+		 * via the addEdge method
 		 * 
 		 * @param data
 		 * @param weight - Node data letter/name
@@ -266,6 +327,7 @@ public class Graph {
 			this.weight = weight;
 			this.dist = Integer.MAX_VALUE;
 			this.visited = false;
+			this.previous = null;
 		}
 
 		/**
@@ -284,6 +346,15 @@ public class Graph {
 		 */
 		public void setVisited(Boolean visited) {
 			this.visited = visited;
+		}
+
+		/**
+		 * This method sets the previous node variable of the node
+		 * 
+		 * @param node - node to be set to the previous variable
+		 */
+		public void setPrevious(Node node) {
+			this.previous = node;
 		}
 
 	}
