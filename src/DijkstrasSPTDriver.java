@@ -64,13 +64,14 @@ public class DijkstrasSPTDriver {
 		adjGraph.print();
 
 		// assign starting node data to variable
-		char startNode = 'C';
+		char startNode = 'R';
 
 		// assign end node data to variable
-		char endNode = 'A';
+		char endNode = 'T';
 
 		// call dijkstraSPT()
 		adjGraph.dijkstraSPT(startNode, endNode);
+		
 	}
 
 }
